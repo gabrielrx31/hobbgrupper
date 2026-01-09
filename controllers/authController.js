@@ -4,8 +4,10 @@ const bcrypt = require('bcrypt');
 //registrer ny bruger
 exports.registerUser = async (req,res) => {
     try {
+        //check om brugernavn eller email allerede eksisterer
         const { username, email, password } = req.body;
         const existingUser = await userModel.findOne({
+            //Find brugeren med enten det brugernavn eller email
             $or: [{ username }, { email }]
         });
 
@@ -13,6 +15,7 @@ exports.registerUser = async (req,res) => {
             return res.status(400).send({ message: 'Username or email already exists' });
         }
 
+        //10 er antallet af salt rounds (hvor mange gange passwordet bliver hashet)
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const user = new userModel({
