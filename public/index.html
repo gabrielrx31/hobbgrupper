@@ -1,146 +1,308 @@
 <!DOCTYPE html>
 <html lang="da">
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Hobbyfællesskbsapplikation</title>
-        <link rel="stylesheet" href="styles.css">
-    </head>
-    <body>
-        <header>
-            <h1>Velkommen til Hobbyfællesskabsapplikationen</h1>
-        </header>
-        <main>
-            <section>
-                <h2>Grupper</h2>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hobbyfællesskab</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header med logout -->
+        <div class="header">
+            <h1>Hobbyfællesskab</h1>
+            <div>
+                <span id="welcomeUser"></span>
+                <button onclick="logout()" class="btn btn-secondary">Log ud</button>
+            </div>
+        </div>
+
+        <!-- Grupper sektion -->
+        <section class="section">
+            <h2>Grupper</h2>
+            
+            <!-- Formular til at oprette ny gruppe -->
+            <div class="form-container">
+                <h3>Opret ny gruppe</h3>
+                <form id="groupForm">
+                    <div class="form-group">
+                        <label for="groupName">Gruppenavn:</label>
+                        <input type="text" id="groupName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="groupDescription">Beskrivelse:</label>
+                        <textarea id="groupDescription" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn">Opret gruppe</button>
+                </form>
+            </div>
+
+            <!-- Tabel med alle grupper -->
+            <div class="table-container">
+                <h3>Alle grupper</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Gruppenavn</th>
+                            <th>Beskrivelse</th>
+                            <th>Antal medlemmer</th>
+                            <th>Oprettet</th>
+                            <th>Handlinger</th>
+                        </tr>
+                    </thead>
+                    <tbody id="groupsTable">
+                        <!-- Grupper indsættes her via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Events sektion -->
+        <section class="section">
+            <h2>Events</h2>
+            
+            <!-- Formular til at oprette nyt event -->
+            <div class="form-container">
+                <h3>Opret nyt event</h3>
+                <form id="eventForm">
+                    <div class="form-group">
+                        <label for="eventTitle">Titel:</label>
+                        <input type="text" id="eventTitle" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="eventDescription">Beskrivelse:</label>
+                        <textarea id="eventDescription" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="eventDate">Dato:</label>
+                        <input type="datetime-local" id="eventDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="eventLocation">Sted:</label>
+                        <input type="text" id="eventLocation">
+                    </div>
+                    
+                    <button type="submit" class="btn">Opret event</button>
+                </form>
+            </div>
+
+            <!-- Tabel med alle events -->
+            <div class="table-container">
+                <h3>Alle events</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Titel</th>
+                            <th>Beskrivelse</th>
+                            <th>Dato</th>
+                            <th>Sted</th>
+                            <th>Handlinger</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eventsTable">
+                        <!-- Events indsættes her via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div id="message"></div>
+    </div>
+
+    <script>
+        // Tjek om bruger er logget ind
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('welcomeUser').textContent = 'Velkommen, ' + user.username + '!';
+        }
+
+        // Logout funktion
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        // Hent alle grupper
+        async function loadGroups() {
+            try {
+                const response = await fetch('http://localhost:3000/groups');
+                const groups = await response.json();
                 
-                <!-- Formular til at oprette ny gruppe -->
-                <div class="form-container">
-                    <h3>Opret ny gruppe</h3>
-                    <form id="group-form">
-                        <div class="form-group">
-                            <label for="groupName">Gruppenavn:</label>
-                            <input type="text" id="groupName" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="groupDescription">Beskrivelse:</label>
-                            <textarea id="groupDescription" rows="3"></textarea>
-                        </div>
-
-                        <button type="submit">Opret gruppe</button>
-                    </form>
-                </div>
-
-                <!-- Tabel med alle grupper -->
-                <div class="table-container">
-                    <h3>Alle grupper</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Gruppenavn</th>
-                                <th>Beskrivelse</th>
-                                <th>Oprettet</th>
-                                <th>Handlinger</th>
-                            </tr>
-                        </thead>
-                        <tbody id="groupsTable">
-                            <!-- Grupper indsættes her via JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div id="message"></div>
-            </section>
-        </main>
-
-        <script>
-            // Hent alle grupper
-            async function loadGroups() {
-                try { 
-                    const response = await fetch('http://localhost:3000/groups');
-                    const groups = await response.json();
-
-                    const tableBody = document.getElementById('groupsTable');
-
-                    if (groups.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="4">Ingen grupper endnu</td></tr>';
-                        return;
-                    }
-
-                    tableBody.innerHTML = groups.map(group => `
+                const tableBody = document.getElementById('groupsTable');
+                tableBody.innerHTML = '';
+                
+                groups.forEach(group => {
+                    const row = `
                         <tr>
                             <td>${group.name}</td>
                             <td>${group.description || '-'}</td>
+                            <td>${group.members ? group.members.length : 0}</td>
                             <td>${new Date(group.createdAt).toLocaleDateString('da-DK')}</td>
                             <td>
                                 <button onclick="deleteGroup('${group._id}')" class="btn btn-small btn-danger">Slet</button>
                             </td>
                         </tr>
-                    `).join('');
-                } catch (error) {
-                    console.error('Fejl ved hentning af grupper:', error);
-                }
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Fejl ved indlæsning af grupper:', error);
             }
+        }
 
-            // Opret ny gruppe
-            document.getElementById('group-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
+        // Opret ny gruppe
+        document.getElementById('groupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('groupName').value;
+            const description = document.getElementById('groupDescription').value;
+            
+            try {
+                const response = await fetch('http://localhost:3000/groups', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, description })
+                });
                 
-                const name = document.getElementById('groupName').value;
-                const description = document.getElementById('groupDescription').value;
-                
-                try {
-                    const response = await fetch('http://localhost:3000/groups', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ name, description })
-                    });
-                    
-                    if (response.ok) {
-                        document.getElementById('message').innerHTML = 
-                            '<p class="success">Gruppe oprettet!</p>';
-                        document.getElementById('group-form').reset();
-                        loadGroups(); // Genindlæs tabellen
-                        
-                        setTimeout(() => {
-                            document.getElementById('message').innerHTML = '';
-                        }, 3000);
-                    }
-                } catch (error) {
+                if (response.ok) {
                     document.getElementById('message').innerHTML = 
-                        '<p class="error">Kunne ikke oprette gruppe.</p>';
-                }
-            });
-
-            // Slet gruppe
-            async function deleteGroup(id) {
-                if (!confirm('Er du sikker på at du vil slette denne gruppe?')) return;
-                
-                try {
-                    const response = await fetch(`http://localhost:3000/groups/${id}`, {
-                        method: 'DELETE'
-                    });
+                        '<p class="success">Gruppe oprettet!</p>';
+                    document.getElementById('groupForm').reset();
+                    loadGroups();
                     
-                    if (response.ok) {
-                        document.getElementById('message').innerHTML = 
-                            '<p class="success">Gruppe slettet!</p>';
-                        loadGroups(); // Genindlæs tabellen
-                        
-                        setTimeout(() => {
-                            document.getElementById('message').innerHTML = '';
-                        }, 3000);
-                    }
-                } catch (error) {
-                    document.getElementById('message').innerHTML = 
-                        '<p class="error">Kunne ikke slette gruppe.</p>';
+                    setTimeout(() => {
+                        document.getElementById('message').innerHTML = '';
+                    }, 3000);
                 }
+            } catch (error) {
+                document.getElementById('message').innerHTML = 
+                    '<p class="error">Kunne ikke oprette gruppe.</p>';
             }
+        });
 
-            // Indlæs grupper når siden loader
-            loadGroups();
-        </script>
-    </body>
+        // Slet gruppe
+        async function deleteGroup(id) {
+            if (!confirm('Er du sikker på at du vil slette denne gruppe?')) return;
+            
+            try {
+                const response = await fetch(`http://localhost:3000/groups/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    document.getElementById('message').innerHTML = 
+                        '<p class="success">Gruppe slettet!</p>';
+                    loadGroups();
+                    
+                    setTimeout(() => {
+                        document.getElementById('message').innerHTML = '';
+                    }, 3000);
+                }
+            } catch (error) {
+                document.getElementById('message').innerHTML = 
+                    '<p class="error">Kunne ikke slette gruppe.</p>';
+            }
+        }
+
+        // Hent alle events
+        async function loadEvents() {
+            try {
+                const response = await fetch('http://localhost:3000/events');
+                const events = await response.json();
+                
+                const tableBody = document.getElementById('eventsTable');
+                tableBody.innerHTML = '';
+                
+                events.forEach(event => {
+                    const row = `
+                        <tr>
+                            <td>${event.title}</td>
+                            <td>${event.description || '-'}</td>
+                            <td>${new Date(event.date).toLocaleString('da-DK')}</td>
+                            <td>${event.location || '-'}</td>
+                            <td>
+                                <button onclick="deleteEvent('${event._id}')" class="btn btn-small btn-danger">Slet</button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Fejl ved indlæsning af events:', error);
+            }
+        }
+
+        // Opret nyt event
+        document.getElementById('eventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('eventTitle').value;
+            const description = document.getElementById('eventDescription').value;
+            const date = document.getElementById('eventDate').value;
+            const location = document.getElementById('eventLocation').value;
+            
+            try {
+                const response = await fetch('http://localhost:3000/events', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title, description, date, location })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('message').innerHTML = 
+                        '<p class="success">Event oprettet!</p>';
+                    document.getElementById('eventForm').reset();
+                    loadEvents();
+                    
+                    setTimeout(() => {
+                        document.getElementById('message').innerHTML = '';
+                    }, 3000);
+                }
+            } catch (error) {
+                document.getElementById('message').innerHTML = 
+                    '<p class="error">Kunne ikke oprette event.</p>';
+            }
+        });
+
+        // Slet event
+        async function deleteEvent(id) {
+            if (!confirm('Er du sikker på at du vil slette dette event?')) return;
+            
+            try {
+                const response = await fetch(`http://localhost:3000/events/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    document.getElementById('message').innerHTML = 
+                        '<p class="success">Event slettet!</p>';
+                    loadEvents();
+                    
+                    setTimeout(() => {
+                        document.getElementById('message').innerHTML = '';
+                    }, 3000);
+                }
+            } catch (error) {
+                document.getElementById('message').innerHTML = 
+                    '<p class="error">Kunne ikke slette event.</p>';
+            }
+        }
+
+        // Indlæs data når siden loader
+        loadGroups();
+        loadEvents();
+    </script>
+</body>
 </html>
