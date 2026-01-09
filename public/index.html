@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="da">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Hobbyfællesskbsapplikation</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <header>
+            <h1>Velkommen til Hobbyfællesskabsapplikationen</h1>
+        </header>
+        <main>
+            <section>
+                <h2>Grupper</h2>
+                
+                <!-- Formular til at oprette ny gruppe -->
+                <div class="form-container">
+                    <h3>Opret ny gruppe</h3>
+                    <form id="group-form">
+                        <div class="form-group">
+                            <label for="groupName">Gruppenavn:</label>
+                            <input type="text" id="groupName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="groupDescription">Beskrivelse:</label>
+                            <textarea id="groupDescription" rows="3"></textarea>
+                        </div>
+
+                        <button type="submit">Opret gruppe</button>
+                    </form>
+                </div>
+
+                <!-- Tabel med alle grupper -->
+                <div class="table-container">
+                    <h3>Alle grupper</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Gruppenavn</th>
+                                <th>Beskrivelse</th>
+                                <th>Oprettet</th>
+                                <th>Handlinger</th>
+                            </tr>
+                        </thead>
+                        <tbody id="groupsTable">
+                            <!-- Grupper indsættes her via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="message"></div>
+            </section>
+        </main>
+
+        <script>
+            // Hent alle grupper
+            async function loadGroups() {
+                try { 
+                    const response = await fetch('http://localhost:3000/groups');
+                    const groups = await response.json();
+
+                    const tableBody = document.getElementById('groupsTable');
+
+                    if (groups.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="4">Ingen grupper endnu</td></tr>';
+                        return;
+                    }
+
+                    tableBody.innerHTML = groups.map(group => `
+                        <tr>
+                            <td>${group.name}</td>
+                            <td>${group.description || '-'}</td>
+                            <td>${new Date(group.createdAt).toLocaleDateString('da-DK')}</td>
+                            <td>
+                                <button onclick="deleteGroup('${group._id}')" class="btn btn-small btn-danger">Slet</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } catch (error) {
+                    console.error('Fejl ved hentning af grupper:', error);
+                }
+            }
+
+            // Opret ny gruppe
+            document.getElementById('group-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const name = document.getElementById('groupName').value;
+                const description = document.getElementById('groupDescription').value;
+                
+                try {
+                    const response = await fetch('http://localhost:3000/groups', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name, description })
+                    });
+                    
+                    if (response.ok) {
+                        document.getElementById('message').innerHTML = 
+                            '<p class="success">Gruppe oprettet!</p>';
+                        document.getElementById('group-form').reset();
+                        loadGroups(); // Genindlæs tabellen
+                        
+                        setTimeout(() => {
+                            document.getElementById('message').innerHTML = '';
+                        }, 3000);
+                    }
+                } catch (error) {
+                    document.getElementById('message').innerHTML = 
+                        '<p class="error">Kunne ikke oprette gruppe.</p>';
+                }
+            });
+
+            // Slet gruppe
+            async function deleteGroup(id) {
+                if (!confirm('Er du sikker på at du vil slette denne gruppe?')) return;
+                
+                try {
+                    const response = await fetch(`http://localhost:3000/groups/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        document.getElementById('message').innerHTML = 
+                            '<p class="success">Gruppe slettet!</p>';
+                        loadGroups(); // Genindlæs tabellen
+                        
+                        setTimeout(() => {
+                            document.getElementById('message').innerHTML = '';
+                        }, 3000);
+                    }
+                } catch (error) {
+                    document.getElementById('message').innerHTML = 
+                        '<p class="error">Kunne ikke slette gruppe.</p>';
+                }
+            }
+
+            // Indlæs grupper når siden loader
+            loadGroups();
+        </script>
+    </body>
+</html>

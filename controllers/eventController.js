@@ -4,6 +4,7 @@ const eventModel = require('../models/eventModel');
 exports.createEvent = async (req, res) => {
     try {
         const event = new eventModel(req.body);
+        
         await event.save();
         res.status(201).send(event);
     } catch (error) {
