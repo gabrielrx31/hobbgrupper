@@ -34,6 +34,19 @@ exports.getGroupById = async (req, res) => {
     }
 };
 
+//opdatere en group by id
+exports.updateGroupByID = async (req, res) => {
+    try {
+        const updatedGroup = await groupModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!updatedGroup) {
+            return res.status(404).send({ message: 'Group not found' });
+        }
+        res.status(200).send(updatedGroup);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
 //slet en group by id
 exports.deleteGroupById = async (req, res) => {
     try {

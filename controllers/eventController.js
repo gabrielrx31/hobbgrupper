@@ -34,6 +34,20 @@ exports.getEventById = async (req, res) => {
     }
 };
 
+//opdater en event by id
+exports.updateEventById = async (req, res) => {
+    try { 
+        updatedEvent = await eventModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!updatedEvent) {
+            return res.status(404).send({ message: 'Event not found' });
+        }
+        res.status(200).send(updatedEvent);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+
 //slet en event by id
 exports.deleteEventById = async (req, res) => {
     try {
