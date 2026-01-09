@@ -4,3 +4,25 @@ body {
     padding: 0;
     background-color: lightblue;
 }
+
+h1 {
+    color: navy;
+    text-align: center;
+    margin-top: 20px;
+}
+
+span {
+    color: navy;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+h2 {
+    color: navy;
+    text-align: center;
+}
+
+h3 {
+    color: navy;
+    text-align: center;
+}
